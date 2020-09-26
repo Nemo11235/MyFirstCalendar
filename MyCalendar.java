@@ -11,27 +11,20 @@ public class MyCalendar {
 	 */
 	public MyCalendar() {
 		// parallel array list for time and event
-		ArrayList<TimeInterval> time = new ArrayList<TimeInterval>();
-		ArrayList<Event> event = new ArrayList<Event>();
+		ArrayList<TimeInterval> times = new ArrayList<TimeInterval>();
+		ArrayList<Event> events = new ArrayList<Event>();
 		
 		try {
 			File FN = new File("events.txt");
 			Scanner sc = new Scanner(FN);
 			while(sc.hasNextLine()) {
-				System.out.println(sc.nextLine());
+				String name = sc.nextLine();
+				String time = sc.nextLine();
 			}
 		}catch(FileNotFoundException e){
 			System.out.println("File not found");
 		}
 		
-		try {
-			File file = new File("events.txt");
-			if(file.createNewFile()) {
-				System.out.println("New file created");
-			}
-		}catch (IOException e){
-			System.out.println("Error occored");
-		}
 	}
 }
 
