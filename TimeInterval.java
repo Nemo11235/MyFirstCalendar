@@ -21,13 +21,12 @@ public class TimeInterval {
 			// compare the starting times. if t1 starts earlier than t2, see if end time of t1 is later than starting time of t2, if it does, there's an overlap
 			if(timeToDouble(t1.start.getHour(), t1.start.getMinute()) < timeToDouble(t2.start.getHour(), t2.start.getMinute())){
 				return (timeToDouble(t1.end.getHour(), t1.end.getMinute()) > timeToDouble(t2.start.getHour(), t2.start.getMinute()));
-			}else {
-				return (timeToDouble(t2.end.getHour(), t2.end.getMinute()) > timeToDouble(t1.start.getHour(), t1.start.getMinute()));
-			}
-		}else {
-			return false;
-		}
-		
+			}else { return (timeToDouble(t2.end.getHour(), t2.end.getMinute()) > timeToDouble(t1.start.getHour(), t1.start.getMinute())); }
+		}else { return false; }
+	}
+	
+	public void printInterval() {
+		System.out.println();
 	}
 }
 
