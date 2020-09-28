@@ -2,31 +2,74 @@ import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.Month;
+import java.time.format.DateTimeFormatter;
 
 public class TimeInterval {
-	LocalDateTime start;
-	LocalDateTime end;
+	private LocalDate date;
+	private LocalTime start;
+	private LocalTime end;
 	
-
-	public TimeInterval(int year, int month, int dayOfMonth, int hour, int min, int eyear, int emonth, int edayOfMonth, int ehour, int emin){
-		start = LocalDateTime.of(year, month, dayOfMonth, hour, min);
-		end = LocalDateTime.of(eyear, emonth, edayOfMonth, ehour, emin);
+	/**
+	 * Constructor
+	 * @param d date
+	 * @param s staring time
+	 * @param e ending time
+	 */
+	public TimeInterval(LocalDate d, LocalTime s, LocalTime e) {
+		date = d;
+		start = s;
+		end = e;
 	}
 	
-	public static double timeToDouble(int h, int m){ return (double)h + (double)m / 60; }
-	
+	/**
+	 * This function check if two time intervals is conflict
+	 * @param t1
+	 * @param t2
+	 * @return weather t1 and t2 is conflict
+	 */
 	public static boolean conflict(TimeInterval t1, TimeInterval t2){
 		// if the year, month and day of month is the same
-		if(t1.start.getYear() == t2.start.getYear() && t1.start.getMonth() == t2.start.getMonth() && t1.start.getDayOfMonth() == t2.start.getDayOfMonth()){
-			// compare the starting times. if t1 starts earlier than t2, see if end time of t1 is later than starting time of t2, if it does, there's an overlap
-			if(timeToDouble(t1.start.getHour(), t1.start.getMinute()) < timeToDouble(t2.start.getHour(), t2.start.getMinute())){
-				return (timeToDouble(t1.end.getHour(), t1.end.getMinute()) > timeToDouble(t2.start.getHour(), t2.start.getMinute()));
-			}else { return (timeToDouble(t2.end.getHour(), t2.end.getMinute()) > timeToDouble(t1.start.getHour(), t1.start.getMinute())); }
-		}else { return false; }
+		if(t1.date.equals(t2.date)) {
+			if(t1.equals(t2)) return true;
+			if(t1.start.isBefore(t2.start))
+				return t1.end.isAfter(t2.start);
+			else
+				return t2.end.isAfter(t1.start);
+		} else {
+			return false;
+		}
 	}
 	
+	/**
+	 * Function that prints the interval in a certain format
+	 */
 	public void printInterval() {
-		System.out.println();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("E, MMM d yyyy");
+		System.out.println("From: " + formatter.format(start) + "\nTo: " + formatter.format(end));
 	}
+	
+	/**
+	 * Setter function to set the date
+	 * @param d new date to replace
+	 */
+	public void setDate (LocalDate d) { date = d; }
+	
+	/**
+	 * Getter function that returns the date
+	 * @return date date of the interval
+	 */
+	public LocalDate getDate () { return date; }
+	
+	/**
+	 * Getter function that returns the starting time
+	 * @return start staring time of event
+	 */
+	public LocalTime getStartTime () { return start; }
+	
+	/**
+	 * Getter function that returns the ending time
+	 * @return end end time of the event
+	 */
+	public LocalTime getEndTime () { return end; }
 }
 
