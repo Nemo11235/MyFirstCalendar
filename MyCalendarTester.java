@@ -1,200 +1,223 @@
-import java.util.Scanner;
-import java.time.DayOfWeek;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.Month;
-import java.time.YearMonth;
-import java.time.format.*;
-import java.util.Locale;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
-
-public class MyCalendarTester {
-
-	public static void main(String[] args) {
+public class MyCalendar {
+	
+	// parallel array list for time and event
+	private Vector<Event> events = new Vector<Event>();
+	
+	/**
+	 * Default constructor of MyCalendar, it should read the event.txt file and load them into the two array lists.
+	 */
+	public MyCalendar() {
+		try {
+			File FN = new File("events.txt");
+			Scanner sc = new Scanner(FN);
+			while(sc.hasNextLine()) {
+				String name = sc.nextLine();
+				String time = sc.nextLine();
+				addEvent(name, time);
+			}
+		}catch(IOException e){
+			System.out.println("File not found");
+		}
+	}
+	
+	/**
+	 * This function will add one-time or recurring event to the events vector
+	 * @param name name of the event
+	 * @param time time information of the event
+	 */
+	public void addEvent(String name, String time) {
+		Event toAdd = new Event(name, time);
+		if (toAdd.isRecurring()) {
+			for(LocalDate date = toAdd.getStartDate(); date.isBefore(toAdd.getEndDate()) || date.isEqual(toAdd.getEndDate()); date = date.plusDays(1)) {
+				for (int i = 0; i < toAdd.getRepeatDays().size(); i++) {
+					if (date.getDayOfWeek().getValue() == toAdd.getRepeatDays().get(i)) {
+						toAdd.getInterval().setDate(date);
+						events.add(toAdd);
+						// System.out.println(toAdd.getName() + " added to " + toAdd.getInterval().getDate());
+					}
+				}
+			}
+		} else {
+			events.add(toAdd);
+			// System.out.println(toAdd.getName() + " added to "+  toAdd.getInterval().getDate());
+		}
+	}
+	
+	/**
+	 * This function will delete the event with the given event name
+	 * @param name name of the event to delete
+	 */
+	public void deleteEvent(String name) {
+		for (int i = 0; i < events.size(); i++) {
+			if (events.get(i).getName().equals(name))
+				events.remove(i);
+		}
+		System.out.println(name + " has been removed from the calendar.");
+	}
+	
+	/**
+	 * This function will remove all the one time events of the given LocalDate
+	 * @param date date of the one time events to delete
+	 */
+	public void deleteAllOneTime(LocalDate date) {
+		for (int i = 0; i < events.size(); i++) {
+			if (events.get(i).getInterval().getDate().isEqual(date) && !events.get(i).isRecurring()) {
+				System.out.println(events.get(i).getName() + " has been removed from calendar.");
+				events.remove(i);
+			}
+		}
+	}
+	
+	/**
+	 * This function will remove the recurring events of name given
+	 * @param name name of the recurring event to delete
+	 */
+	public void deleteEventName(String name) {
+		for (int i = 0; i < events.size(); i++) {
+			if (events.get(i).getName().equals(name) && events.get(i).isRecurring())
+				events.remove(i);
+		}
+		System.out.println(name + " has been removed from calendar.");
+	}
+	
+	/**
+	 * This function will print all the events of a given date
+	 * @param date the date input by user
+	 */
+	public void printEventsOfDate(LocalDate date) {
+		for (int i = 0; i < events.size(); i++) {
+			if (events.get(i).getInterval().getDate().isEqual(date))
+				Event.printEvent(events.get(i));
+		}
+	}
+	
+	/**
+	 * Function that prints all events in a day for day view option in main menu
+	 * @param date date of which the events will be printed
+	 */
+	public void printDayView(LocalDate date) {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("E, MMM d yyyy");
+		for (int i = 0; i < events.size(); i++) {
+			if (events.get(i).getInterval().getDate().isEqual(date)) {
+				System.out.println(formatter.format(date));
+				System.out.println(events.get(i).getName() + " : " + events.get(i).getInterval().getStartTime() + " - " + events.get(i).getInterval().getEndTime());
+			}
+		}
+	}
+	
+	/**
+	 * This function will print all the events of the given date for user to select on to delete
+	 * @param date the date of which the user wants to select an event to delete
+	 */
+	public void printEventsOfDayForDelete(LocalDate date) {
+		for (int i = 0; i < events.size(); i++) {
+			if (events.get(i).getInterval().getDate().isEqual(date))
+				System.out.println(events.get(i).getInterval().getStartTime() + " - " + events.get(i).getInterval().getEndTime() + " " + events.get(i).getName());
+		}
+	}
+	
+	/**
+	 * This function will check if there's any event on a certain date
+	 * @param date the date that the user wants to check
+	 * @return hasEvent if there's an event on the date, it will be set to true
+	 */
+	public boolean checkEventOfDate(LocalDate date) {
+		boolean hasEvent = false;
+		for(int i = 0; i < events.size(); i++) {
+			if (events.get(i).getInterval().getDate().isEqual(date))
+				hasEvent = true;
+		}
+		return hasEvent;
+	}
+	
+	/**
+	 * Function that prints all the events in certain format
+	 */
+	public void printEventList() {
+		boolean notSorted = true;
+		int size = events.size();
+		while(notSorted) {
+			notSorted = false;
+			for(int i = 0; i < size - 1; i++) {
+				if (events.get(i).getInterval().getDate().isAfter(events.get(i+1).getInterval().getDate())) {
+					notSorted = true;
+					Event temp = events.get(i);
+					events.set(i, events.get(i+1));
+					events.set(i+1, temp);
+				}
+			}
+			size--;
+		}
 		
-		LocalDate cal = LocalDate.now(); 
-		printMonth(cal); // print current month and indicates today
-		System.out.println("\nSelect one of the following main menu options:\r\n" + "[V]iew by  [C]reate, [G]o to [E]vent list [D]elete  [Q]uit");
-		MyCalendar calendar = new MyCalendar();
-		DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("MM/dd/yy"); 
+		Vector<Event> oneTime = new Vector<Event>();
+		Vector<Event> recurring = new Vector<Event>();
+		for(int i = 0; i < events.size(); i++) {
+			if(events.get(i).isRecurring()) recurring.add(events.get(i));
+			else oneTime.add(events.get(i));
+		}
 		
-		Scanner scan = new Scanner(System.in);
-		char choice = scan.next().charAt(0); 
-		char ViewChoice;
-		char nextChoice;
-		boolean notDone;
-		while(choice != 'Q'){
-			if(choice == 'V'){
-				LocalDate today = LocalDate.now();
-				notDone = true;
-				System.out.println("[D]ay view or [M]onth view ? ");
-				ViewChoice = scan.next().charAt(0);
-				if (ViewChoice == 'D') {
-					calendar.printDayView(today);
-					System.out.println("[P]revious or [N]ext or [G]o back to the main menu ?");
-					nextChoice = scan.next().charAt(0);
-					if (nextChoice == 'G') notDone = false;
-					while(notDone) { 
-						if (nextChoice == 'P') {
-							today = today.plusDays(-1);
-							calendar.printEventsOfDate(today);
-						} else if (nextChoice == 'N') {
-							today = today.plusDays(1);
-							calendar.printEventsOfDate(today);
-						}
-						System.out.println("[P]revious or [N]ext or [G]o back to the main menu ?");
-						nextChoice = scan.next().charAt(0);
-						if (nextChoice == 'G')
-							notDone = false;
+		// print the one-time events
+		int curYear = 0;
+		System.out.println("ONE TIME EVENTS\n");
+		for(int j = 0; j < oneTime.size(); j++) {
+			if (oneTime.get(j).getInterval().getDate().getYear() != curYear) {
+				curYear = oneTime.get(j).getInterval().getDate().getYear();
+				System.out.println(curYear);
+			}
+			Event.printEvent(oneTime.get(j));
+		}
+		System.out.println();
+		
+		// print the recurring events
+		System.out.println("RECURRING EVENTS");
+		Event.printEvent(recurring.get(0));
+		String lastOne = recurring.get(0).getName();
+		for (int k = 1; k < recurring.size(); k++) {
+			if(recurring.get(k).getName() != lastOne) {
+				Event.printEvent(recurring.get(k));
+				lastOne = recurring.get(k).getName();
+			}
+		}
+	}
+	
+	/**
+	* Function that saves the calendar to a file called filename.txt
+	* @param filename name of file 
+	*/
+	public void saveToFile(String filename) {
+		try 
+		{
+			DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("MM/dd/yy"); 
+			File file = new File(filename + ".txt");
+			FileWriter myWriter = new FileWriter(filename + ".txt");
+			for(int i = 0; i < events.size(); i++) {
+				myWriter.write(events.get(i).getName() + "\n");
+				if (events.get(i).isRecurring()) {
+					myWriter.write(events.get(i).repeatStr + " " + events.get(i).getInterval().getStartTime() + " " + events.get(i).getInterval().getEndTime() + " " + dateFormat.format(events.get(i).getStartDate()) + " " + dateFormat.format(events.get(i).getEndDate()) + "\n");
+					while(i + 1 < events.size() && events.get(i + 1).getName().equals(events.get(i).getName())) {
+						i+=1;
 					}
 				} else {
-					printEventsOfMonth(cal, calendar);
+					myWriter.write(dateFormat.format(events.get(i).getInterval().getDate()) + " " + events.get(i).getInterval().getStartTime() + " " + events.get(i).getInterval().getEndTime() + "\n");
 				}
 			}
-			else if(choice == 'C'){
-				scan.nextLine();
-				String name, date, start, end, time;
-				System.out.println("Name of event: ");
-				name = scan.nextLine();
-				System.out.println("Date(MM/DD/YY): ");
-				date = scan.nextLine();
-				System.out.println("Start Time(HH:MM): ");
-				start = scan.nextLine();
-				System.out.println("End Time(HH:MM): ");
-				end = scan.nextLine();
-				time = date + " " + start + " " + end;
-				calendar.addEvent(name, time);
-			}
-			else if(choice == 'E'){
-				calendar.printEventList();
-			}
-			else if(choice == 'G'){
-				scan.nextLine();
-				System.out.println("Please enter the date you want to check(MM/DD/YY): ");
-				String check = scan.nextLine();
-				LocalDate date = LocalDate.parse(check, dateFormat);
-				calendar.printEventsOfDate(date);
-			}
-			else if(choice == 'D'){
-				scan.nextLine();
-				System.out.println("Enter [S] to enter a specific ONE TIME event on a specific date to delete\n"
-						+ "Enter [A] to enter a date which all the ONE TIMEevent of that date will be deleted\n"
-						+ "Enter [DR] to enter the name of a RECURRING event to delete");
-				String input = scan.nextLine();
-				if (input.charAt(0) == 'S') {
-					System.out.println("Enter the date (MM/DD/YY): ");
-					String check = scan.nextLine();
-					LocalDate date = LocalDate.parse(check, dateFormat);
-					calendar.printEventsOfDayForDelete(date);
-					System.out.println("Enter the name of the event to delete: ");
-					String name = scan.nextLine();
-					calendar.deleteEvent(name);
-				} else if (input.charAt(0) == 'A') {
-					System.out.println("Enter the date of which you want to delte all the ONE TIME event(MM/DD/YY): ");
-					String dateStr = scan.nextLine();
-					LocalDate date = LocalDate.parse(dateStr, dateFormat);
-					calendar.deleteAllOneTime(date);
-				} else if (input.charAt(0) == 'D') {
-					System.out.println("Enter the name of the RECURRING event you want to delete: ");
-					String name = scan.nextLine();
-					calendar.deleteEventName(name);
-				}
-			}
-			System.out.println("Select one of the following main menu options:\r\n" + "[V]iew by  [C]reate, [G]o to [E]vent list [D]elete  [Q]uit");
-			choice = scan.next().charAt(0); 
+			myWriter.close();
 		}
-		System.out.println("Thanks for using the calendar, bye!");	
-		calendar.saveToFile("events");
-	}// end of main;
-	
-	/**
-	 * This function prints the current month's calendar and indicate today's date with square brackets
-	 * @param c - the current date information
-	 */
-	public static void printMonth(LocalDate c) {
-		Month month = c.getMonth();
-		String monthStr = month.getDisplayName(TextStyle.FULL, Locale.ENGLISH);
-		System.out.println(monthStr + " " + c.getYear());
-		System.out.println("Su Mo Tu We Th Fr Sa");
-		int first_day_of_month = LocalDate.of(c.getYear(), c.getMonth(), 1).getDayOfWeek().getValue(); 
-		YearMonth yearMonthObject = YearMonth.of(c.getYear(), c.getMonthValue());
-		int daysInMonth = yearMonthObject.lengthOfMonth();
-		
-		// print the first line of dates
-		int start;
-		if (first_day_of_month == 7) start = 0;
-		else start = first_day_of_month;
-		
-		for(int i = 0; i < start; i++) System.out.print("   ");
-		for(int i = 0; i < 7-start; i++) {
-			if(i+1 == c.getDayOfMonth()) System.out.print("[");
-			System.out.print(i+1);
-			if(i+1 == c.getDayOfMonth()) System.out.print("]");
-			if(i+1 > 9) System.out.print(" ");
-			else System.out.print("  ");
+		catch(IOException e)
+		{
+			System.out.println("An error occurred.");
+			e.printStackTrace();
 		}
-		System.out.println();
-		
-		// prints the rest of the days in the month;
-		int switchLine = 1;
-		for(int i = 7-start; i < daysInMonth; i++){
-			if(i+1 == c.getDayOfMonth()) System.out.print("[");
-			System.out.print(i+1);
-			if(i+1 == c.getDayOfMonth()) System.out.print("]");
-			if(i+1 > 9) System.out.print(" ");
-			else System.out.print("  ");
-			if(switchLine == 7){
-				System.out.println();
-				switchLine = 0;
-			}
-			switchLine++;
-		}
-		System.out.println();
-	} // end of printMonth();
-	
-	/**
-	 * Print the current month and the days that has event will be within {}
-	 * @param c date of the month to be print
-	 * @param calendar object that holds all the events
-	 */
-	public static void printEventsOfMonth(LocalDate c, MyCalendar calendar) {
-		Month month = c.getMonth();
-		String monthStr = month.getDisplayName(TextStyle.FULL, Locale.ENGLISH);
-		System.out.println(monthStr + " " + c.getYear());
-		System.out.println("Su Mo Tu We Th Fr Sa");
-		int first_day_of_month = LocalDate.of(c.getYear(), c.getMonth(), 1).getDayOfWeek().getValue(); 
-		YearMonth yearMonthObject = YearMonth.of(c.getYear(), c.getMonthValue());
-		int daysInMonth = yearMonthObject.lengthOfMonth();
-		
-		// print the first line of dates
-		int start;
-		if (first_day_of_month == 7) start = 0;
-		else start = first_day_of_month;
-		
-		for(int i = 0; i < start; i++) System.out.print("   ");
-		for(int i = 0; i < 7-start; i++) {
-			if(calendar.checkEventOfDate(LocalDate.of(c.getYear(),c.getMonth().getValue() , i+1))) System.out.print("{");
-			System.out.print(i+1);
-			if(calendar.checkEventOfDate(LocalDate.of(c.getYear(),c.getMonth().getValue() , i+1))) System.out.print("}");
-			if(i+1 > 9) System.out.print(" ");
-			else System.out.print("  ");
-		}
-		System.out.println();
-		
-		// prints the rest of the days in the month;
-		int switchLine = 1;
-		for(int i = 7-start; i < daysInMonth; i++){
-			if(calendar.checkEventOfDate(LocalDate.of(c.getYear(),c.getMonth().getValue() , i+1))) System.out.print("{");
-			System.out.print(i+1);
-			if(calendar.checkEventOfDate(LocalDate.of(c.getYear(),c.getMonth().getValue() , i+1))) System.out.print("}");
-			if(i+1 > 9) System.out.print(" ");
-			else System.out.print("  ");
-			if(switchLine == 7){
-				System.out.println();
-				switchLine = 0;
-			}
-			switchLine++;
-		}
-		System.out.println();
 	}
+		
 }
+
+
