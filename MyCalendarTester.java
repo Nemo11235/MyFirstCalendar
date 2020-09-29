@@ -34,7 +34,7 @@ public class MyCalendarTester {
 					System.out.println("[P]revious or [N]ext or [G]o back to the main menu ?");
 					nextChoice = scan.next().charAt(0);
 					if (nextChoice == 'G') notDone = false;
-					while(notDone) {
+					while(notDone) { 
 						if (nextChoice == 'P') {
 							today = today.plusDays(-1);
 							calendar.printEventsOfDate(today);
@@ -104,6 +104,7 @@ public class MyCalendarTester {
 			choice = scan.next().charAt(0); 
 		}
 		System.out.println("Thanks for using the calendar, bye!");	
+		calendar.saveToFile("events");
 	}// end of main;
 	
 	/**
