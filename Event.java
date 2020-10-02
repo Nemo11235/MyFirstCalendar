@@ -71,6 +71,12 @@ public class Event {
 		}
 	}
 	
+	public static void printRecurring(Event e) {
+		DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("E, MMM d yyyy");
+		System.out.print(" " + dateFormat.format(e.getInterval().getDate()));
+		System.out.println(" " + e.getInterval().getStartTime() + " - " + e.getInterval().getEndTime() + " " + e.getName());
+	}
+	
 	
 	/**
 	 * Setter function for event name
@@ -94,6 +100,14 @@ public class Event {
 	 * @return time time interval of event
 	 */
 	public TimeInterval getInterval() { return interval; }
+	
+	/**
+	 * This function will set the date of the interval
+	 * @para date date to replace
+	 */
+	public void setIntervalDate(LocalDate date) {
+		interval.setDate(date);
+	}
 	
 	/**
 	 * Getter function for event time
