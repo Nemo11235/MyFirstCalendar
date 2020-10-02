@@ -19,12 +19,13 @@ public class MyCalendarTester {
 		DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("MM/dd/yy"); 
 		
 		Scanner scan = new Scanner(System.in);
-		char choice = scan.next().charAt(0); 
+		char choice = scan.nextLine().charAt(0); 
 		char ViewChoice;
 		char nextChoice;
 		boolean notDone;
 		while(choice != 'Q'){
 			if(choice == 'V'){
+				scan.nextLine();
 				LocalDate today = LocalDate.now();
 				notDone = true;
 				System.out.println("[D]ay view or [M]onth view ? ");
@@ -48,7 +49,24 @@ public class MyCalendarTester {
 							notDone = false;
 					}
 				} else {
-					printEventsOfMonth(cal, calendar);
+					printEventsOfMonth(today, calendar);
+					System.out.println("[P]revious or [N]ext or [G]o back to the main menu ?");
+					nextChoice = scan.next().charAt(0);
+					if (nextChoice == 'G') notDone = false;
+					while(notDone) { 
+						if (nextChoice == 'P') {
+							today = today.plusMonths(-1);
+							printEventsOfMonth(today, calendar);
+						} else if (nextChoice == 'N') {
+							today = today.plusMonths(1);
+							printEventsOfMonth(today, calendar);
+						}
+						System.out.println("[P]revious or [N]ext or [G]o back to the main menu ?");
+						nextChoice = scan.next().charAt(0);
+						if (nextChoice == 'G')
+							notDone = false;
+					}
+					printEventsOfMonth(today, calendar);
 				}
 			}
 			else if(choice == 'C'){
@@ -69,8 +87,8 @@ public class MyCalendarTester {
 				calendar.printEventList();
 			}
 			else if(choice == 'G'){
-				scan.nextLine();
 				System.out.println("Please enter the date you want to check(MM/DD/YY): ");
+				scan.nextLine();
 				String check = scan.nextLine();
 				LocalDate date = LocalDate.parse(check, dateFormat);
 				calendar.printEventsOfDate(date);
@@ -82,6 +100,7 @@ public class MyCalendarTester {
 						+ "Enter [DR] to enter the name of a RECURRING event to delete");
 				String input = scan.nextLine();
 				if (input.charAt(0) == 'S') {
+					scan.nextLine();
 					System.out.println("Enter the date (MM/DD/YY): ");
 					String check = scan.nextLine();
 					LocalDate date = LocalDate.parse(check, dateFormat);
@@ -90,11 +109,13 @@ public class MyCalendarTester {
 					String name = scan.nextLine();
 					calendar.deleteEvent(name);
 				} else if (input.charAt(0) == 'A') {
+					scan.nextLine();
 					System.out.println("Enter the date of which you want to delte all the ONE TIME event(MM/DD/YY): ");
 					String dateStr = scan.nextLine();
 					LocalDate date = LocalDate.parse(dateStr, dateFormat);
 					calendar.deleteAllOneTime(date);
 				} else if (input.charAt(0) == 'D') {
+					scan.nextLine();
 					System.out.println("Enter the name of the RECURRING event you want to delete: ");
 					String name = scan.nextLine();
 					calendar.deleteEventName(name);
@@ -104,7 +125,7 @@ public class MyCalendarTester {
 			choice = scan.next().charAt(0); 
 		}
 		System.out.println("Thanks for using the calendar, bye!");	
-		calendar.saveToFile("events");
+		calendar.saveToFile("output");
 	}// end of main;
 	
 	/**
